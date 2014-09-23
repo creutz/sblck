@@ -1,0 +1,1155 @@
+<?php
+
+
+/**
+ * Implements hook_permission().
+ */
+function revolution_slider_permission() {
+  return array(
+    'administer revolution_slider' =>  array(
+      'title' => t('Administer the revolution_slider module'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_help().
+ */
+function revolution_slider_help($path, $arg) {
+	switch ($path) {
+		case 'admin/config/media/revolution_slider/edit/%':
+			return
+			'<p>'
+			. t('An <em>option set</em> defines exactly how a revolution_slider image gallery looks like on your site. '
+			. 'It is s a combination of <a href="@styles">image styles</a> for the various image sizes and revolution_slider library options.', array('@styles' => url('admin/config/media/image-styles'))) . '<br />'
+			. '</p>';
+	}
+}
+
+/**
+ * Implements hook_theme().
+ */
+function revolution_slider_theme() {
+  return array(
+    // Container for nav elements (arrows)
+    'revolution_slider' => array(
+      'variables' => array('items' => array(), 'settings' => array()),
+      'template' => 'theme/revolution_slider',
+      'file' => 'theme/revolution_slider.theme.inc',
+    ),
+    'revolution_slider_list' => array(
+      'variables' => array('items' => array(), 'settings' => array()),
+      'file' => 'theme/revolution_slider.theme.inc',
+    ),
+    'revolution_slider_list_item' => array(
+      'variables' => array('item' => array(), 'settings' => array()),
+      'file' => 'theme/revolution_slider.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_image_default_styles().
+ */
+function revolution_slider_image_default_styles() {
+  $styles = array();
+
+  // Default image preset for revolution_slider
+  $styles['revolution_slider_full'] = array(
+    'effects' => array(
+      array(
+        'name' => 'image_scale_and_crop',
+        'data' => array('width' => 800, 'height' => 500),
+        'weight' => 0,
+      ),
+    ),
+  );
+
+  // Default image preset for revolution_slider thumbnails
+  $styles['revolution_slider_thumbnail'] = array(
+    'effects' => array(
+      array(
+        'name' => 'image_scale_and_crop',
+        'data' => array('width' => 160, 'height' => 100),
+        'weight' => 0,
+      ),
+    ),
+  );
+
+  return $styles;
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function revolution_slider_ctools_plugin_api($owner, $api) {
+  if ($owner == 'revolution_slider' && $api == 'revolution_slider_default_preset') {
+    return array('version' => 1);
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function revolution_slider_ctools_plugin_directory($module, $type) {
+  if ($type == 'export_ui') {
+    return 'plugins/export_ui';
+  }
+}
+
+/**
+ * Create a new optionset object
+ *
+ * Note that this function does not save the optionset to the database.
+ * @see revolution_slider_optionset_save()
+ */
+function revolution_slider_optionset_create($values = array()) {
+  ctools_include('export');
+  $optionset = ctools_export_crud_new('revolution_slider_optionset');
+
+  // Set the options to an array
+  $optionset->options = array();
+
+  // Assign specified values
+  if (isset($values['name'])) {
+    $optionset->name = $values['name'];
+  }
+  if (isset($values['title'])) {
+    $optionset->title = $values['title'];
+  }
+  if (isset($values['options']) and is_array($values['options'])) {
+    $optionset->options = $values['options'];
+  }
+
+  // Merge default settings with any given settings
+  $optionset_defaults = _revolution_slider_optionset_defaults();
+  $optionset->options = $optionset_defaults += $optionset->options;
+
+  return $optionset;
+}
+
+/**
+ * Fetches all option sets from the database and returns them as an associative array.
+ */
+function revolution_slider_optionset_load_all() {
+  ctools_include('export');
+  $optionsets = ctools_export_crud_load_all('revolution_slider_optionset');
+  foreach ($optionsets as $optionset) {
+    // Ensure the optionset is typecast after being loaded from DB
+    _revolution_slider_typecast_optionset($optionset->options);
+  }
+  return $optionsets;
+}
+
+/**
+ * Fetches the given option set and returns it as an object or NULL, if no set could be found.
+ */
+function revolution_slider_optionset_load($optionset_name) {
+  ctools_include('export');
+  $optionset = ctools_export_crud_load('revolution_slider_optionset', $optionset_name);
+    // Ensure the optionset is typecast after being loaded from DB
+  _revolution_slider_typecast_optionset($optionset->options);
+  return $optionset;
+}
+
+/**
+ * Checks whether an option set with the given name already exists.
+ */
+function revolution_slider_optionset_exists($optionset_name) {
+  ctools_include('export');
+  $optionset = ctools_export_crud_load('revolution_slider_optionset', $optionset_name);
+  return isset($optionset->name);
+}
+
+/**
+ * Saves the given option set to the database.
+ * Set the $new flag if this set has not been written before.
+ *
+ * @return object|boolean
+ *  Returns the newly saved object, FALSE otherwise.
+ */
+function revolution_slider_optionset_save($optionset, $new = FALSE) {
+  // If the machine name is missing or already in use, return an error.
+  if (empty($optionset->name) or (FALSE != revolution_slider_optionset_exists($optionset->name) and $new)) {
+    return FALSE;
+  }
+
+  // Check for an invalid list of options
+  if (isset($optionset->options) and !is_array($optionset->options)) {
+    return FALSE;
+  }
+
+
+  // If the title is missing, default to the name
+  if (empty($optionset->title)) {
+    $optionset->title = $optionset->name;
+  }
+
+  // Merge default settings with any given settings
+  $optionset_defaults = _revolution_slider_optionset_defaults();
+  $optionset->options = $optionset_defaults += $optionset->options;
+
+  // Prepare the database values.
+  $db_values = array(
+    'name' => $optionset->name,
+    'title' => $optionset->title,
+    'options' => _revolution_slider_typecast_optionset($optionset->options),
+  );
+
+  if ($new) {
+    $result = drupal_write_record('revolution_slider_optionset', $db_values);
+  }
+  else {
+    $result = drupal_write_record('revolution_slider_optionset', $db_values, 'name');
+  }
+
+  // Return the object if the values were saved successfully.
+  if (($new and SAVED_NEW == $result) or (!$new and SAVED_UPDATED == $result)) {
+    return $optionset;
+  }
+
+  // Otherwise, an error occured
+  return FALSE;
+}
+
+/**
+ * Deletes the given option set from the database.
+ *
+ * @param object|string $optionset
+ *  Optionset object or machine name
+ */
+function revolution_slider_optionset_delete($optionset) {
+  if (isset($optionset->name)) {
+    $name = $optionset->name;
+  }
+  else {
+    $name = $optionset;
+  }
+  db_delete('revolution_slider_optionset')->condition('name', $name)->execute();
+}
+
+/*
+ * This function loads the required JavaScripts and settings for a revolution_slider
+ * instance.
+ *
+ * @param string $id [optional]
+ *  ID Attribute for revolution_slider container
+ * @param object|strong $optionset [optional]
+ *  Option set to load or the machine name of an existing optionset
+ */
+function revolution_slider_add($id = NULL, $optionset = NULL) {
+  // Check optionset value
+  if (is_string($optionset)) {
+    $name = $optionset;
+    $optionset = revolution_slider_optionset_load($name);
+    if (empty($optionset)) {
+      watchdog('revolution_slider', 'Invalid optionset name supplied to revolution_slider_add: @name', array('@name' => $name), WATCHDOG_WARNING);
+      return;
+    }
+  }
+
+  // Static array to remember which scripts are already attached.
+  // @todo not currently in use
+  $cache = &drupal_static(__FUNCTION__, array());
+
+  // If the ID or optionset aren't set, it is assumed the settings will be set
+  // manually via the calling module/theme
+  if (!empty($id) && !empty($optionset)) {
+    // JavaScript settings
+    $js_settings = array(
+      'optionsets' => array(
+        $optionset->name => $optionset->options,
+      ),
+      'instances' => array(
+        $id => $optionset->name,
+      ),
+    );
+    // @todo add alter hook for optionset
+    drupal_add_js(array('revolution_slider' => $js_settings), 'setting');
+  }
+  // Loader JavaScript
+  drupal_add_js(drupal_get_path('module', 'revolution_slider') . '/js/revolution_slider.load.js', array('type' => 'file', 'scope' => 'header'));
+}
+
+/**
+ * Default settings for a newly created option set
+ *
+ * @param string $key [optional]
+ *  Get specific default value
+ *
+ */
+function _revolution_slider_optionset_defaults($key = NULL) {
+
+  // We add typecasts to ensure the variables get json encoded properly
+
+  $defaults = array(
+    'delay' => 6000,
+  	'startheight' => 460,
+  	'startwidth' => 960,
+  	'hideThumbs' => 200,
+  	'navigationType' => 'none',
+  	'navigationArrows' => 'solo',
+  	'navigationStyle' => 'navbar',
+  	'navigationHAlign' => 'center',
+  	'navigationVAlign' => 'bottom',
+  	'navigationHOffset' => 0,
+  	'navigationVOffset' => 20,
+  	'soloArrowLeftHAlign' => 'leftnull',
+  	'soloArrowLeftVAlign' => 'null',
+  	'soloArrowLeftHOffset' => 0,
+  	'soloArrowLeftVOffset' => 0,
+  	'soloArrowRightHAlign' => 'right',
+  	'soloArrowRightVAlign' => 'null',
+  	'soloArrowRightHOffset' => 0,
+  	'soloArrowRightVOffset' => 0,
+  	'navOffsetHorizontal' => 0,
+  	'navOffsetVertical' => 0,
+  	'touchenabled' => 'on',
+  	'shadow' => 0,
+  	'onHoverStop' => 'on',
+  	'thumbWidth' => 50,
+  	'thumbHeight' => 50,
+  	'thumbAmount' => 5,
+  	'fullWidth' => 'on',
+    'stopAtSlide' => -1,
+    'stopAfterLoops' => -1,
+  );
+
+  // Typecast the values
+  _revolution_slider_typecast_optionset($defaults);
+
+  // Return the specific item
+  if (isset($key) and array_key_exists($key, $defaults)) {
+    return $defaults[$key];
+  }
+
+  // Return all items
+  return $defaults;
+}
+
+/**
+ * Adds the typecasting to the values so that the generated
+ * json array keeps the right values
+ */
+function _revolution_slider_typecast_optionset(&$options) {
+  if (isset($options) && !empty($options)) {
+    foreach ($options as $key => $value) {
+      switch ($key) {
+        case 'navigationType':
+        case 'navigationArrows':
+        case 'navigationStyle':
+        case 'navigationHAlign':
+        case 'navigationVAlign':
+        case 'soloArrowLeftHAlign':
+        case 'soloArrowLeftVAlign':
+        case 'soloArrowRightHAlign':
+        case 'soloArrowRightVAlign':
+        case 'fullwidth':
+        case 'shadow':
+        case 'touchenabled':
+        case 'onHoverStop':
+          $options[$key] = (string)$value;
+          break;
+        case 'delay':
+        case 'startheight':
+        case 'startwidth':
+        case 'hideThumbs':
+        case 'navigationHOffset':
+        case 'navigationVOffset':
+        case 'soloArrowLeftHOffset':
+        case 'soloArrowLeftVOffset':
+        case 'soloArrowRightHOffset':
+        case 'soloArrowRightVOffset':
+        case 'navOffsetHorizontal':
+        case 'navOffsetVertical':
+        case 'thumbWidth':
+        case 'thumbHeight':
+        case 'thumbAmount':
+        case 'stopAtSlide':
+        case 'stopAfterLoops':
+          $options[$key] = (int)$value;
+          break;
+      }
+    }
+  }
+}
+
+/**
+ * @file
+ * Create compound field using the Field Types API.
+ *
+ * @see field_types
+ * @see field
+ */
+
+/***************************************************************
+ * Add Slide Builder Javascript
+***************************************************************/
+function revolution_slider_preprocess_html(&$vars) {
+	if (path_is_admin(current_path()) && (arg(0) == 'node' && arg(1) == 'add') ||  (arg(0) == 'node' && arg(2) == 'edit')) {
+		drupal_add_js(drupal_get_path('module', 'revolution_slider') . '/js/admin.js');
+		drupal_add_css($theme_path = drupal_get_path('theme', variable_get('theme_default', NULL)) . '/css/slider.css');
+		drupal_add_library('system', 'ui.draggable');
+	}
+}
+
+/***************************************************************
+ * Field Type API hooks
+ ***************************************************************/
+
+/**
+ * Implements hook_field_info().
+ *
+ * Provides the description of the field.
+ */
+
+function revolution_slider_field_info() {
+	return array(
+			'revolution_slider_layer' => array(
+					'label' => t('Layer Settings'),
+					'description' => t("This field stores PC layer values"),
+					'default_widget' => 'revolution_slider_layer',
+					'default_formatter' => 'revolution_slider_layer',
+			),
+			'revolution_slider_slide' => array(
+					'label' => t('Slide Settings'),
+					'description' => t("This field stores PC layer values"),
+					'default_widget' => 'revolution_slider_slide',
+					'default_formatter' => 'revolution_slider_slide',
+			),
+
+	);
+}
+
+/**
+ * Implements hook_field_validate().
+ *
+ * This hook gives us a chance to validate content that's in our
+ * field.
+ *
+ * @see revolution_slider_field_widget_error()
+ */
+function revolution_slider_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+	foreach ($items as $delta => $item) {
+		// ...
+	}
+}
+
+
+/**
+ * Implements hook_field_is_empty().
+ *
+ * hook_field_is_emtpy() is where Drupal asks us if this field is empty.
+ * Return TRUE if it does not contain data, FALSE if it does. This lets
+ * the form API flag an error when required fields are empty.
+ */
+function revolution_slider_field_is_empty($item, $field) {
+	$temp = array_keys($field['columns']);
+	$key = array_shift($temp);
+	return empty($item[$key]);
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ *
+ * We need to tell Drupal that we have two different types of formatters
+ * for this field. One will change the text color, and the other will
+ * change the background color.
+ *
+ * @see revolution_slider_field_formatter_view()
+ */
+function revolution_slider_field_formatter_info() {
+	return array(
+			'revolution_slider_layer' => array(
+					'label' => t('layer fields'),
+					'field types' => array('revolution_slider_layer'),
+			),
+			'revolution_slider_slide' => array(
+					'label' => t('slide fields'),
+					'field types' => array('revolution_slider_slide'),
+			),
+	);
+}
+
+function revolution_slider_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+	// Make sure that each file which will be saved with this object has a
+	// permanent status, so that it will not be removed when temporary files are
+	// cleaned up.
+	
+	switch ($instance['widget']['type']) {
+		case 'revolution_slider_layer':
+			
+		foreach ($items as $delta => $item) {
+			if ($item['img'] != 0) {
+				$file = file_load($item['img']);
+				if (!$file->status) {
+					$file->status = FILE_STATUS_PERMANENT;
+					file_save($file);
+					file_usage_add($file, 'revolution_slider', 'revolution_slider', $item['img']);
+				}
+			}
+		}
+		break;
+	
+	}
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ *
+ * Two formatters are implemented.
+ * - revolution_slider_simple_text just outputs markup indicating the color that
+ *   was entered and uses an inline style to set the text color to that value.
+ * - revolution_slider_color_background does the same but also changes the
+ *   background color of div.region-content.
+ *
+ * @see revolution_slider_field_formatter_info()
+ */
+function revolution_slider_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+	$element = array();
+
+	switch ($display['type']) {
+		case 'revolution_slider_layer':
+
+		foreach ($items as $delta => $item) {
+	
+			$layer_value = '';
+			$tag = '';
+			$image = '';
+			$speed = ($item['speed'] != '') ? 'data-speed="'.$item['speed'].'"' : '';
+			$start = ($item['startafter'] != '') ? 'data-start="'.$item['startafter'].'"' : '';
+			$endspeed = ($item['endspeed'] != '') ? 'data-endspeed="'.$item['endspeed'].'"' : '';
+			$end = ($item['end'] != '') ? 'data-end="'.$item['end'].'"' : '';
+			$endeasing = ($item['endeasing'] != '') ? 'data-endeasing="'.$item['endeasing'].'"' : '';
+			$max_delta = count($items) - 1;
+			$max_format = ($delta == $max_delta) ? '</li>' : '';
+			
+			if (!empty($item['img'])) {
+				$img_path = '<img src="'.file_create_url(file_load($item['img'])->uri).'" />';
+			} else {
+				$img_path = '&nbsp;';		
+			}
+	
+			switch ($item['layer']) {
+				case "img": $layer_value = $img_path; break;
+				case "div": $layer_value = $item['div']; break;
+				case "h1": $layer_value = $item['h1']; break;
+				case "h2": $layer_value = $item['h2']; break;
+				case "h3": $layer_value = $item['h3']; break;
+				case "h4": $layer_value = $item['h4']; break;
+				case "h5": $layer_value = $item['h5']; break;
+				case "h6": $layer_value = $item['h6']; break;
+				default: $layer_value = ""; break;
+			}
+			
+			if ($item['layer'] == 'img') { $tag = 'div'; } else { $tag = $item['layer']; }
+			
+			$element[$delta] = array('#markup' => '<'.$tag.' class="caption '
+					.$item['layer'].' '
+					.$item['css'].' '
+					.$item['animation'].'" data-easing="'
+					.$item['easing'].'" data-x="'
+					.$item['data_x'].'" data-y="'
+					.$item['data_y'].'" '
+					.$speed.' '
+					.$start.' '
+					.$end.' '
+					.$endspeed.' '
+					.$endeasing.'>'.$layer_value.'</'.$tag.'>'.$max_format);
+		}
+		break;
+		
+		case 'revolution_slider_slide':
+		
+		foreach ($items as $delta => $item) {
+			
+			$slide_value = '';
+			$slide_data = array('slotamount', 'target', 'linktoslide', 'delay', 'link', 'fstransition', 'fsmasterspeed', 'fsslotamount');
+
+			foreach($slide_data as $data) {
+				if ($item[$data] != NULL) { $slide_value .= ' data-'.$data.'="'.$item[$data].'"';} 
+			}
+			
+			$element[$delta] = array('#markup' => '<li data-transition="' .
+					$item['transition'] . '" data-masterspeed="'.$item['masterspeed'].'" '.$slide_value.'>');
+		}
+		break;
+	}
+	return $element;
+}
+
+/**
+ * Implements hook_field_widget_info().
+ *
+ * Three widgets are provided.
+ * - A simple text-only widget where the user enters the '#ffffff'.
+ * - A 3-textfield widget that gathers the red, green, and blue values
+ *   separately.
+ * - A farbtastic colorpicker widget that chooses the value graphically.
+ *
+ * These widget types will eventually show up in hook_field_widget_form,
+ * where we will have to flesh them out.
+ *
+ * @see revolution_slider_field_widget_form()
+ */
+function revolution_slider_field_widget_info() {
+	return array(
+			'revolution_slider_layer' => array(
+					'label' => t('Layer values'),
+					'field types' => array('revolution_slider_layer'),
+			),
+			'revolution_slider_slide' => array(
+					'label' => t('Slide values'),
+					'field types' => array('revolution_slider_slide'),
+			),
+	);
+}
+
+/**
+ * Implements hook_field_widget_form().
+ *
+ * hook_widget_form() is where Drupal tells us to create form elements for
+ * our field's widget.
+ */
+function revolution_slider_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+	switch ($instance['widget']['type']) {
+		
+	case 'revolution_slider_layer':
+		
+	$settings = $form_state['field'][$instance['field_name']][$langcode]['field']['settings'];
+
+	$field_name = $instance['field_name'];
+	
+	$element['layer'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-layer'), 'title' => t('')),
+			'#type' => 'select',
+			'#title' => t('Layer Type:'),
+			'#description' => t('HTML Wrapper'),
+			'#options'       => array(
+					'0' => t('Select type:'),
+					'img' => t('Image'),
+					'div' => t('DIV'),
+					'h1' => t('H1'),
+					'h2' => t('H2'),
+					'h3' => t('H3'),
+					'h4' => t('H4'),
+					'h5' => t('H5'),
+					'h6' => t('H6'),
+			),
+	);
+
+	$element['animation'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-animation'), 'title' => t('')),
+			'#type' => 'select',
+			'#title' => t('data-animation'),
+			'#description' => t('Animation effect'),
+			'#options'       => array(
+					'sft' => t('Short from Top'),
+					'sfb' => t('Short from Bottom'),
+					'sfr' => t('Short from Right'),
+					'sfl' => t('Short from Left'),
+					'lft' => t('Long from Top'),
+					'lfb' => t('Long from Bottom'),
+					'lfr' => t('Long from Right'),
+					'lfl' => t('Long from Left'),
+					'fade' => t('Fading'),
+			),
+			'#states' => array(
+					'invisible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+					'disabled' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+			),
+	);
+
+	$element['easing'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-easing'), 'title' => t('')),
+			'#type' => 'select',
+			'#title' => t('data-easing'),
+			'#description' => t('Easing effect.'),
+			'#options'       => array(
+					'0' => t('easeOutBack'),
+					'easeInQuad' => t('easeInQuad'),
+					'easeOutQuad' => t('easeOutQuad'),
+					'easeInOutQuad' => t('easeInOutQuad'),
+					'easeInCubic' => t('easeInCubic'),
+					'easeOutCubic' => t('easeOutCubic'),
+					'easeInOutCubic' => t('easeInOutCubic'),
+					'easeInQuart' => t('easeInQuart'),
+					'easeOutQuart' => t('easeOutQuart'),
+					'easeInOutQuart' => t('easeInOutQuart'),
+					'easeInQuint' => t('easeInQuint'),
+					'easeOutQuint' => t('easeOutQuint'),
+					'easeInOutQuint' => t('easeInOutQuint'),
+					'easeInSine' => t('easeInSine'),
+					'easeOutSine' => t('easeOutSine'),
+					'easeInOutSine' => t('easeInOutSine'),
+					'easeInExpo' => t('easeInExpo'),
+					'easeOutExpo' => t('easeOutExpo'),
+					'easeInOutExpo' => t('easeInOutExpo'),
+					'easeInCirc' => t('easeInCirc'),
+					'easeOutCirc' => t('easeOutCirc'),
+					'easeInOutCirc' => t('easeInOutCirc'),
+					'easeInElastic' => t('easeInElastic'),
+					'easeOutElastic' => t('easeOutElastic'),
+					'easeInOutElastic' => t('easeInOutElastic'),
+					'easeInBack' => t('easeInBack'),
+					'easeOutBack' => t('easeOutBack'),
+					'easeInOutBack' => t('easeInOutBack'),
+					'easeInBounce' => t('easeInBounce'),
+					'easeOutBounce' => t('easeOutBounce'),
+					'easeInOutBounce' => t('easeInOutBounce'),
+			),
+			'#states' => array(
+					'invisible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+					'disabled' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+			),
+	);
+
+	$element['data_x'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-data-x'), 'title' => t('')),
+			'#type' => 'textfield',
+			'#maxlength' => 4,
+			'#title' => t('data-x'),
+			'#description' => t('x-axis'),
+			'#states' => array(
+					'invisible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+					'disabled' => array(      
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+			),
+	);
+
+	$element['data_y'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-data-y'), 'title' => t('')),
+			'#type' => 'textfield',
+			'#maxlength' => 4,
+			'#title' => t('data-y'),
+			'#description' => t('y-axis'),
+			'#states' => array(
+					'invisible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+					'disabled' => array(      
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+			),
+	);
+	
+	$element['img'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-image-'.$delta), 'title' => t('')),
+			'#type' => 'managed_file',
+			'#title' => t('Image upload'),
+			'#upload_validators' => array(
+					'file_validate_extensions' => array(0 => 'png jpg jpeg gif'),
+			),
+			'#upload_location' => 'public://default_images/',
+			'#description' => t("Upload an image."),
+			'#states' => array(
+					'visible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 'img'),
+					),
+			),
+	);
+	
+	$element['div'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-div-'.$delta), 'title' => t('')),
+			'#type' => 'textarea',
+			'#title' => t('Markup:'),
+			'#description' => t("Paste markup in the textarea above."),
+			'#states' => array(
+					'visible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 'div'),
+					),
+			),
+	);
+	
+	$element['h1'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-h1-'.$delta), 'title' => t('')),
+			'#type' => 'textfield',
+			'#title' => t('Markup:'),
+			'#description' => t("Enter markup in the textfield above."),
+			'#states' => array(
+					'visible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 'h1'),
+					),
+			),
+	);
+	
+	$element['h2'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-h2-'.$delta), 'title' => t('')),
+			'#type' => 'textfield',
+			'#title' => t('Markup:'),
+			'#description' => t("Enter markup in the textfield above."),
+			'#states' => array(
+					'visible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 'h2'),
+					),
+			),
+	);
+	
+	$element['h3'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-h3-'.$delta), 'title' => t('')),
+			'#type' => 'textfield',
+			'#title' => t('Markup:'),
+			'#description' => t("Enter markup in the textfield above."),
+			'#states' => array(
+					'visible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 'h3'),
+					),
+			),
+	);
+	
+	$element['h4'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-h4-'.$delta), 'title' => t('')),
+			'#type' => 'textfield',
+			'#title' => t('Markup:'),
+			'#description' => t("Enter markup in the textfield above."),
+			'#states' => array(
+					'visible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 'h4'),
+					),
+			),
+	);
+	
+	$element['h5'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-h5-'.$delta), 'title' => t('')),
+			'#type' => 'textfield',
+			'#title' => t('Markup:'),
+			'#description' => t("Enter markup in the textfield above."),
+			'#states' => array(
+					'visible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 'h5'),
+					),
+			),
+	);
+	
+	$element['h6'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-h6-'.$delta), 'title' => t('')),
+			'#type' => 'textfield',
+			'#title' => t('Markup:'),
+			'#description' => t("Enter markup in the textfield above."),
+			'#states' => array(
+					'visible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 'h6'),
+					),
+			),
+	);
+	
+	$element['speed'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-data-speed'), 'title' => t('')),
+			'#type' => 'textfield',
+			'#maxlength' => 4,
+			'#field_suffix' => 'ms',
+			'#title' => t('data-speed:'),
+			'#description' => t('Animation speed'),
+			'#states' => array(
+					'invisible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+			),
+	);
+	
+	$element['startafter'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-data-startafter'), 'title' => t('')),
+			'#type' => 'textfield',
+			'#maxlength' => 4,
+			'#field_suffix' => 'ms',
+			'#title' => t('data-start:'),
+			'#description' => t('Start animation'),
+			'#states' => array(
+					'invisible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+			),
+	);
+	
+	$element['endspeed'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-data-endspeed'), 'title' => t('')),
+			'#type' => 'textfield',
+			'#maxlength' => 4,
+			'#field_suffix' => 'ms',
+			'#title' => t('data-endspeed:'),
+			'#description' => t('End animation speed'),
+			'#states' => array(
+					'invisible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+			),
+	);
+	
+	$element['end'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-data-end'), 'title' => t('')),
+			'#type' => 'textfield',
+			'#maxlength' => 4,
+			'#field_suffix' => 'ms',
+			'#title' => t('data-end:'),
+			'#description' => t('End animation'),
+			'#states' => array(
+					'invisible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+			),
+	);
+	
+	$element['endeasing'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-endeasing'), 'title' => t('')),
+			'#type' => 'select',
+			'#title' => t('data-endeasing:'),
+			'#description' => t('End easing effect'),
+			'#options'       => array(
+					'0' => t('easeOutBack'),
+					'easeInQuad' => t('easeInQuad'),
+					'easeOutQuad' => t('easeOutQuad'),
+					'easeInOutQuad' => t('easeInOutQuad'),
+					'easeInCubic' => t('easeInCubic'),
+					'easeOutCubic' => t('easeOutCubic'),
+					'easeInOutCubic' => t('easeInOutCubic'),
+					'easeInQuart' => t('easeInQuart'),
+					'easeOutQuart' => t('easeOutQuart'),
+					'easeInOutQuart' => t('easeInOutQuart'),
+					'easeInQuint' => t('easeInQuint'),
+					'easeOutQuint' => t('easeOutQuint'),
+					'easeInOutQuint' => t('easeInOutQuint'),
+					'easeInSine' => t('easeInSine'),
+					'easeOutSine' => t('easeOutSine'),
+					'easeInOutSine' => t('easeInOutSine'),
+					'easeInExpo' => t('easeInExpo'),
+					'easeOutExpo' => t('easeOutExpo'),
+					'easeInOutExpo' => t('easeInOutExpo'),
+					'easeInCirc' => t('easeInCirc'),
+					'easeOutCirc' => t('easeOutCirc'),
+					'easeInOutCirc' => t('easeInOutCirc'),
+					'easeInElastic' => t('easeInElastic'),
+					'easeOutElastic' => t('easeOutElastic'),
+					'easeInOutElastic' => t('easeInOutElastic'),
+					'easeInBack' => t('easeInBack'),
+					'easeOutBack' => t('easeOutBack'),
+					'easeInOutBack' => t('easeInOutBack'),
+					'easeInBounce' => t('easeInBounce'),
+					'easeOutBounce' => t('easeOutBounce'),
+					'easeInOutBounce' => t('easeInOutBounce'),
+			),
+			'#states' => array(
+					'invisible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+			),
+	);
+	
+	$element['css'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-css-'.$delta), 'title' => t('')),
+			'#type' => 'textfield',
+			'#title' => t('CSS Classes'),
+			'#description' => t("Add additional CSS classes to this layer."),
+			'#states' => array(
+					'invisible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+			),
+	);
+	
+	$element['delete'] = array(
+			'#attributes' => array('class' => array('edit-revolution_slider-fields-css-'.$delta), 'title' => t('')),
+			'#type' => 'fieldset',
+			'#title' => t("Select a layer type:"),
+			'#description' => t("If a layer type is not selected, this layer will be deleted on save."),
+			'#states' => array(
+					'visible' => array(      // Action to take: check the checkbox.
+							':input[name="'.$field_name.'[und]['.$delta.'][layer]"]' => array('value' => 0),
+					),
+			),
+	);
+
+
+	// Loop through all the element children and set a default value if we have one. Then set HTML wrappers.
+	foreach (element_children($element) as $element_key) {
+		$value = isset($items[$delta][$element_key]) ? $items[$delta][$element_key] : '';
+		$element[$element_key]['#default_value'] = $value;
+	}
+	break;
+	
+	case 'revolution_slider_slide':
+		$settings = $form_state['field'][$instance['field_name']][$langcode]['field']['settings'];
+
+		
+		$element['transition'] = array(
+				'#attributes' => array('class' => array('edit-revolution_slider-fields-transition'), 'title' => t('')),
+				'#type' => 'select',
+				'#prefix' => t('<div class="slide-settings"><label class="slide-widget">Slide Settings</label>'),
+				'#title' => t('data-transition:'),
+				'#description' => t('The transition style for this slide.'),
+				'#attached' => array(
+						'css' => array(drupal_get_path('module', 'revolution_slider') . '/admin.css'),
+				),
+				'#options'       => array(
+						'boxslide' => t('boxslide'),
+						'boxfade' => t('boxfade'),
+						'slotzoom-horizontal' => t('slotzoom-horizontal'),
+						'slotslide-horizontal' => t('slotslide-horizontal'),
+						'slotfade-horizontal' => t('slotfade-horizontal'),
+						'slotzoom-vertical' => t('slotzoom-vertical'),
+						'slotslide-vertical' => t('slotslide-vertical'),
+						'slotfade-vertical' => t('slotfade-vertical'),
+						'curtain-1' => t('curtain-1'),
+						'curtain-2' => t('curtain-2'),
+						'curtain-1' => t('curtain-3'),
+						'slideleft' => t('slideleft'),
+						'slideright' => t('slideright'),
+						'slideup' => t('slideup'),
+						'slidedown' => t('slidedown'),
+						'fade' => t('fade'),
+						'random' => t('random'),
+						'slidehorizontal' => t('slidehorizontal'),
+						'slidevertical' => t('slidevertical'),
+						'papercut' => t('papercut'),
+						'flyin' => t('flyin'),
+						'turnoff' => t('turnoff'),
+						'cube' => t('cube'),
+						'3dcurtain-vertical' => t('3dcurtain-vertical'),
+						'3dcurtain-horizontal' => t('3dcurtain-horizontal'),
+				),
+		);
+		
+		$element['slotamount'] = array(
+				'#type' => 'select',
+				'#title' => t('data-slotamount:'),
+				'#field_suffix' => t('&nbsp; slots'),
+				'#description' => t('The amount of slots on transitions.'),
+				'#options'       => array(
+						'0' => t('0'),
+						'1' => t('1'),
+						'2' => t('2'),
+						'3' => t('3'),
+						'4' => t('4'),
+						'5' => t('5'),
+						'6' => t('6'),
+						'7' => t('7'),
+				),
+		);
+		
+		$element['masterspeed'] = array(
+				'#type' => 'textfield',
+				'#maxlength' => 4,
+				'#title' => t('data-masterspeed:'),
+				'#description' => t('The slide transition speed.'),
+				'#field_suffix' => t('&nbsp; milliseconds'),
+		);
+		
+		$element['link'] = array(
+				'#attributes' => array('class' => array('edit-revolution_slider-fields-link'), 'title' => t('')),
+				'#type' => 'textfield',
+				'#title' => t('data-link:'),
+				'#description' => t('Link the slide to another page.'),
+		);
+		
+		$element['target'] = array(
+				'#attributes' => array('class' => array('edit-revolution_slider-fields-target'), 'title' => t('')),
+				'#type' => 'textfield',
+				'#title' => t('data-target:'),
+				'#description' => t('Link target attribute.'),
+		);
+		
+		$element['linktoslide']= array(
+				'#type' => 'textfield',
+				'#field_prefix' => t('<div style="float: left; margin-right: -20px; margin-left: 20px;">Slide Number: &nbsp;</div>'),
+				'#title' => t('data-linktoslide:'),
+				'#description' => t('Link to another slide.'),
+		);
+		
+		$element['delay'] = array(
+				'#type' => 'textfield',
+				'#maxlength' => 4,
+				'#title' => t('data-delay:'),
+				'#description' => t('Slide delay time'),
+				'#field_suffix' => t('&nbsp; milliseconds'),
+		);
+		
+		$element['fstransition'] = array(
+				'#attributes' => array('class' => array('edit-revolution_slider-fields-fstransition'), 'title' => t('')),
+				'#type' => 'select',
+				'#title' => t('data-fstransition:'),
+				'#description' => t('Transition effect on first slide.'),
+				'#options'       => array(
+						'boxslide' => t('boxslide'),
+						'boxfade' => t('boxfade'),
+						'slotzoom-horizontal' => t('slotzoom-horizontal'),
+						'slotslide-horizontal' => t('slotslide-horizontal'),
+						'slotfade-horizontal' => t('slotfade-horizontal'),
+						'slotzoom-vertical' => t('slotzoom-vertical'),
+						'slotslide-vertical' => t('slotslide-vertical'),
+						'slotfade-vertical' => t('slotfade-vertical'),
+						'curtain-1' => t('curtain-1'),
+						'curtain-2' => t('curtain-2'),
+						'curtain-1' => t('curtain-3'),
+						'slideleft' => t('slideleft'),
+						'slideright' => t('slideright'),
+						'slideup' => t('slideup'),
+						'slidedown' => t('slidedown'),
+						'fade' => t('fade'),
+						'random' => t('random'),
+						'slidehorizontal' => t('slidehorizontal'),
+						'slidevertical' => t('slidevertical'),
+						'papercut' => t('papercut'),
+						'flyin' => t('flyin'),
+						'turnoff' => t('turnoff'),
+						'cube' => t('cube'),
+						'3dcurtain-vertical' => t('3dcurtain-vertical'),
+						'3dcurtain-horizontal' => t('3dcurtain-horizontal'),
+				),
+		);
+		
+		$element['fsmasterspeed'] = array(
+				'#type' => 'textfield',
+				'#attributes' => array('class' => array('edit-revolution_slider-fields-fsmasterspeed'), 'title' => t('')),
+				'#description' => t('Transition speed on first slide.'),
+				'#maxlength' => 4,
+				'#title' => t('data-fsmasterspeed:'),
+				'#field_suffix' => t('&nbsp; milliseconds'),
+		);
+		
+		$element['fsslotamount'] = array(
+				'#type' => 'select',
+				'#attributes' => array('class' => array('edit-revolution_slider-fields-fsslotamount'), 'title' => t('')),
+				'#title' => t('data-fsslotamount:'),
+				'#description' => t('The slot amount on first slide.'),
+				'#field_suffix' => t('&nbsp; slots'),
+				'#suffix' => t('</div>'),
+				'#options'       => array(
+						'0' => t('0'),
+						'1' => t('1'),
+						'2' => t('2'),
+						'3' => t('3'),
+						'4' => t('4'),
+						'5' => t('5'),
+						'6' => t('6'),
+						'7' => t('7'),
+				),
+		);
+		
+		foreach (element_children($element) as $element_key) {
+			$value = isset($items[$delta][$element_key]) ? $items[$delta][$element_key] : '';
+			$element[$element_key]['#default_value'] = $value;
+		}
+	break;
+	}
+	
+	
+
+	return $element;
+}
+
+
+
+
+/**
+ * @} End of "defgroup revolution_slider".
+ */

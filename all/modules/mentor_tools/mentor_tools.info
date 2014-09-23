@@ -1,0 +1,5 @@
+name = Mentor: Tools
+description = An example outlining how a module can define blocks.
+package = Mentor
+core = 7.x
+dependencies[] = block

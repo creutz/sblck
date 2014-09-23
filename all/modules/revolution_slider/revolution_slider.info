@@ -1,0 +1,18 @@
+name = Mentor: Revolution Slider
+description = Implements slide builder tool to be used with Revolution Slider javascript plugin.
+package = mentor
+
+; Files
+files[] = revolution_slider.module
+files[] = theme/revolution_slider.theme.inc
+
+; Configuration link
+configure = admin/config/media/revolution_slider
+
+
+; Information added by drupal.org packaging script on 2013-02-01
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "revolution_slider"
+datestamp = "1359680350"
+

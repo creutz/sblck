@@ -1,0 +1,17 @@
+name = Revolution Slider Views Style
+description = Adds a Views style plugin for the Revolution Slider.
+core = 7.x
+package = mentor
+
+dependencies[] = views
+
+files[] = revolution_slider_views.module
+files[] = revolution_slider_views.views.inc
+files[] = revolution_slider_views_plugin_style_revolution_slider.inc
+
+; Information added by drupal.org packaging script on 2013-03-08
+version = "7.x-2.0-alpha1"
+core = "7.x"
+project = "revolution_slider"
+datestamp = "1362783811"
+

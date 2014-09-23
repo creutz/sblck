@@ -1,0 +1,16 @@
+name = 'Mentor'
+description = 'Responsive Drupal 7 theme built with Twitter Bootstrap.'
+core = '7.x'
+
+stylesheets[all][0] = 'css/mentor.min.css'
+
+scripts[] = 'js/mentor.min.js'
+
+regions[header] = Header
+regions[prescript] = Prescript
+regions[sidebar_first]  = Left sidebar
+regions[sidebar_second] = Right sidebar
+regions[content] = Content
+regions[postscript] = Postscript
+regions[footer] = Footer Main
+regions[footer_lower] = Footer Lower

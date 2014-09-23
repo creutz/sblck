@@ -1,0 +1,47 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the mentor_tools module.
+ */
+
+function mentor_tools_field_schema($field) {
+
+switch($field['type']) {
+    case 'mentor_tools':
+      $columns = array(
+        'img' => array(
+          'type' => 'varchar',
+          'length' => '32',
+          'not null' => FALSE,
+        ),
+        'delay' => array(
+          'type' => 'text',
+          'not null' => FALSE,
+        ),
+        'link' => array(
+          'type' => 'text',
+          'not null' => FALSE,
+        ),
+      );
+      $indexes = array(
+      
+      );
+      break;
+}
+	  
+  return array(
+    'columns' => $columns,
+    'indexes' => $indexes,
+  );
+	  
+}
+
+/**
+ * Implements hook_uninstall().
+ *
+ * @ingroup mentor_tools
+ */
+ 
+function mentor_tools_uninstall() {
+  variable_del('mentor_tools_string');
+}
