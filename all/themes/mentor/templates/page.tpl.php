@@ -16,7 +16,7 @@
 			</a>
 
 			<?php if ($logo): ?>
-			<a class="brand" href="<?php print $front_page; ?>" title="<?php print t('Home'); ?>"> <img src="<?php print $logo; ?>" alt="<?php print t('Home'); ?>" />
+			<a class="brand" href="<?php print $front_page; ?>" title="<?php print t('Home'); ?>"> <img id="logo" src="<?php print $logo; ?>" alt="<?php print t('Home'); ?>" />
 			</a>
 			<?php endif; ?>
 

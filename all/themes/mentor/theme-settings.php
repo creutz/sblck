@@ -137,8 +137,9 @@ function mentor_form_system_theme_settings_alter(&$form, &$form_state) {
 						'green' => t('Green'),
 						'blue' => t('Blue'),
 						'orange' => t('Orange'),
+						'red' => t('Red'),
 				),
-				'#suffix'=> t('<ul class="mentor-color-scheme"><li><a class="skin_default"></a></li><li><a class="skin_blue"></a></li><li><a class="skin_orange"></a></li>'),
+				'#suffix'=> t('<ul class="mentor-color-scheme"><li><a class="skin_default"></a></li><li><a class="skin_blue"></a></li><li><a class="skin_orange"></a></li><li><a class="skin_red"></a></li>'),
 		);
 		
 		$form['mentor_settings']['layout']['top_button'] = array(

@@ -2017,6 +2017,7 @@ table .span24 {
 	margin-left: 0
 }
 
+/*
 [class^="icon-"],[class*=" icon-"] {
 	display: inline-block;
 	width: 14px;
@@ -2516,6 +2517,7 @@ table .span24 {
 .icon-resize-horizontal {
 	background-position: -456px -118px
 }
+*/
 
 .dropdown {
 	position: relative
@@ -3678,8 +3680,11 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini {
 	-moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0
 		rgba(0, 0, 0, 0.1);
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0
-		rgba(0, 0, 0, 0.1)
+		rgba(0, 0, 0, 0.1);
+	height: 100%;
+	position: relative;
 }
+
 
 .navbar .container {
 	width: auto
@@ -5651,7 +5656,7 @@ to {
 
 .navbar .nav {
 	float: right;
-	margin-top: 83px
+	margin-top: 58px
 }
 
 .navbar .nav>li {
@@ -5664,6 +5669,10 @@ to {
 
 .navbar .nav>li.last {
 	margin-right: 0
+}
+
+.navbar .nav>li.last a {
+	padding-right: 0;
 }
 
 .dropdown .caret {
@@ -5845,7 +5854,7 @@ to {
 	}
 	
 	.page-portfolio-2col #page-title, 
-	.page-portfolio-3col #page-title, 
+	.page-portfolio #page-title, 
 	.page-portfolio-4col #page-title, 
 	.page-portfolio-6col #page-title {
 		width: 100%;
@@ -6150,6 +6159,11 @@ to {
 	.navbar .nav li a:hover .caret {
 		border-top-color: #fff
 	}
+}
+
+#logo {
+	height: 75px;
+	width: auto;
 }
 
 body {
@@ -7467,6 +7481,15 @@ input:focus,textarea:focus {
 	position: relative
 }
 
+.isotope-element img {
+	max-width: 101%;
+	width: 101%;
+}
+
+.span4.isotope-element {
+	height: 280px;
+}
+
 .portfolioItem .peOver span.over {
 	display: block;
 	width: 100px;
@@ -7495,36 +7518,46 @@ input:focus,textarea:focus {
 	width: 15px;
 	height: 10px;
 	background: url(../img/skin/project_triangle.png) no-repeat 0 0;
-	z-index: 10
+	z-index: 10;
+	display: none;
 }
 
 .portfolioItem .title {
-	margin-top: 20px;
-	padding-left: 14px;
-	padding-right: 14px;
-	margin-bottom: 14px;
-	position: relative
+	position: absolute;
+	bottom: -30%;
+	width: 101%;
+	z-index: 5;
+	margin: 0;
+	padding: 10px 0;
+	background: white;
+	opacity: 0;
+
+	-webkit-transition: opacity 500ms, bottom 300ms;
+}
+
+.portfolioItem:hover .title {
+	bottom: 0;
+	opacity: 0.85;
 }
 
 .portfolioItem .title span {
-	opacity: .3;
+	color: #666;
+	display: block;
 	position: absolute;
-	top: 2px;
-	left: 14px
+	left: 15px;
+	top: 14px;
 }
 
 .portfolioItem .title a {
 	position: relative;
-	margin-left: 20px;
+	margin-left: 40px;
 	border-left: 1px solid #efefef;
 	padding-left: 10px;
 	font-weight: bold;
 	color: #666;
 	font-size: 12px;
 	line-height: 20px;
-	padding-bottom: 2px;
 	float: left;
-	margin-bottom: 8px
 }
 
 .portfolioItem .title a:hover {
@@ -7534,7 +7567,8 @@ input:focus,textarea:focus {
 
 .portfolioItem p {
 	padding: 0 14px;
-	clear: both
+	clear: both;
+	display: none;
 }
 
 .item-description {
@@ -8418,6 +8452,76 @@ a.peVideo video,a.peVideo iframe {
 	.reporter .min1200 {
 		display: block
 	}
+
+	[class*="span"] {
+		margin-left: 30px;
+	}
+
+	.row {
+		margin-left: -30px;
+	}
+
+	.container,
+	.navbar-fixed-top .container,
+	.navbar-fixed-bottom .container {
+		width: 1140px;
+	}
+
+	.span12 {
+		width: 1140px;
+	}
+
+	/*
+
+	.span11 {
+		width: 860px
+	}
+
+	.span10 {
+		width: 780px
+	}
+
+	.span9 {
+		width: 700px
+	}
+
+	.span8 {
+		width: 620px
+	}
+
+	.span7 {
+		width: 540px
+	}
+
+	*/
+
+	.span6 {
+		width: 555px
+	}
+
+	/*.span5 {
+		width: 460px
+	}*/
+
+	.span4 {
+		width: 360px
+	}
+
+	.span3 {
+		width: 262px
+	}
+
+	/*.span2 {
+		width: 190px
+	}
+	*/
+	/*
+
+	.span1 {
+		width: 60px
+	}
+
+	*/
 }
 
 @media ( min-width :980px) {
@@ -9254,7 +9358,7 @@ a.peVideo video,a.peVideo iframe {
 #isotope-options li {
 	list-style: none;
 	float: left;
-	margin-left: 3px;
+	margin-left: 15px;
 }
 
 #isotope-container {
@@ -9263,7 +9367,7 @@ a.peVideo video,a.peVideo iframe {
 }
 
 .page-portfolio-2col #page-title,
-.page-portfolio-3col #page-title,
+.page-portfolio #page-title,
 .page-portfolio-4col #page-title,
 .page-portfolio-6col #page-title {
 	float: left;
@@ -9271,7 +9375,7 @@ a.peVideo video,a.peVideo iframe {
 }
 
 .page-portfolio-2col .content,
-.page-portfolio-3col .content,
+.page-portfolio .content,
 .page-portfolio-4col .content,
 .page-portfolio-6col .content {
 	overflow: hidden;
@@ -9325,11 +9429,13 @@ a.peVideo video,a.peVideo iframe {
 	border: none;
 }
 
-.disable-rtt .peBackToTop {
+.disable-rtt #peBackToTop {
 	display: none;
 	opacity: 0;
 	width: 0px;
 	height: 0px;
+	z-index: -99;
+	visibility: hidden;
 }
 
 .node-type-blog-post .field-name-field-categories .field-item {

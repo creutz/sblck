@@ -5,6 +5,7 @@
  * Default theme implementation to display the basic html structure of a single
  * Drupal page.
  */
+global $base_url;
 
 ?>
 <!DOCTYPE html>
@@ -20,7 +21,10 @@
   <?php print $scripts; ?>
     <!--[if lt IE 9]>
     	<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]--> 
+    <![endif]-->
+    <!--[if IE 7]>
+      <link rel="stylesheet" href="<?php print $base_url . '/' . path_to_theme(); ?>/css/font-awesome-ie7.min.css">
+    <![endif]-->
 </head>
 <body class="<?php print $classes; ?>" <?php print $attributes;?>>
   <div id="skip-link">

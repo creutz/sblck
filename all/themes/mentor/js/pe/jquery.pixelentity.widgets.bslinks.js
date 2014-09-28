@@ -45,7 +45,7 @@
                 link.attr("data-isVideo","1");
             }
 			*/
-            var icon = $('<span class="overIcon '+(link.attr("data-target") == "flare" ? "lightbox" : "link")+'Icon"></span>').hide();
+            var icon = $('<span class="overIcon '+(link.attr("data-target") == "flare" ? "lightbox" : "link")+'Icon"><i class="icon-zoom-in"></i></span>').hide();
 			
             link.append(icon).data("icon",icon);
 			

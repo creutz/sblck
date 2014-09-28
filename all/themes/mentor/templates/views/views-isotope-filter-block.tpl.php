@@ -9,7 +9,7 @@
 
 <div id="isotope-options">
 	<ul id="filters" class="option-set" data-option-key="filter">
-		<li class="first active"><a href="#filter" data-option-value="*" class="label"><?php print t('All'); ?> </a></li>
+		<li class="first active"><a href="#filter" data-option-value="*" class=""><?php print t('All'); ?> </a></li>
 		<?php foreach ( $rows as $id => $row ): ?>
 
 		<?php 
@@ -21,7 +21,7 @@
 		$dataoption = str_replace('&amp;', '', $dataoption);
 		?>
 
-		<li><a class="label" data-option-value=".<?php print $dataoption; ?>" href="#filter"><?php print trim($row); ?> </a></li>
+		<li><a class="" data-option-value=".<?php print $dataoption; ?>" href="#filter"><?php print trim($row); ?> </a></li>
 
 
 		<?php endforeach; ?>

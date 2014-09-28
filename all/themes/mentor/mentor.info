@@ -2,7 +2,8 @@ name = 'Mentor'
 description = 'Responsive Drupal 7 theme built with Twitter Bootstrap.'
 core = '7.x'
 
-stylesheets[all][0] = 'css/mentor.min.css'
+stylesheets[all][] = css/mentor.min.css
+stylesheets[all][] = css/font-awesome.min.css
 
 scripts[] = 'js/mentor.min.js'
 

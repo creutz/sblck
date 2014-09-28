@@ -237,7 +237,7 @@ function mentor_features_image_default_styles() {
         'name' => 'image_scale_and_crop',
         'data' => array(
           'width' => 480,
-          'height' => 396,
+          'height' => 320,
         ),
         'weight' => 1,
       ),

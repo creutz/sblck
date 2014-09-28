@@ -4,16 +4,6 @@
  * @file
  * Default theme implementation to display a node.
  */
-
-	$i = -1;
-	
-	if (!empty($node->field_image)) {
-		$images = array();
-		foreach ($node->field_image['und'] as $image) {
-			$images[$i] = render($image);
-			$i++;
-		}
-	}
 	
 	$active = 0;
 	$body = $node->body['und'][0]['safe_value'];

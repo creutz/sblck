@@ -46,7 +46,7 @@
   			switch($fields['field_post_type']->content) {
   				case 'gallery_grid': case 'gallery_fullscreen':
   					print '<div class="portfolioItem galleryCover post-image">'.$fields['field_image']->content;
-  					print '<div class="title"><span> &times;'.$fields['field_image_2']->content.'</span>
+  					print '<div class="title test"><span> &times;'.$fields['field_image_2']->content.'</span>
   					<span class="arrow"></span>'.$fields['field_gallery_title']->content.'</div></div>';
   				default: break;
   			}
