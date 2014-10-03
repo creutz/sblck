@@ -833,9 +833,13 @@
         border:0;
         box-shadow: none;
         -mox-box-shadow: none;
-        padding-bottom: 1px;
-        height: 242px;
+        padding: 0;
         overflow: hidden;
+    }
+
+    .span4.isotope-element .portfolioItem {
+        height: 240px;
+        
     }
     
     .post-thumbs > div > a img{

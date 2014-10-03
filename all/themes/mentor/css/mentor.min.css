@@ -527,34 +527,10 @@ audio,canvas,video {
 	*zoom: 1
 }
 
-audio
-
-
-:not
-
- 
-
-(
-[
-controls
-]
-
- 
-
-){
-display
-
-
-:
-
- 
-
-none
-
-
-
-
+audio:not([controls]){
+	display: none;
 }
+
 html {
 	font-size: 100%;
 	-webkit-text-size-adjust: 100%;
@@ -7472,7 +7448,8 @@ input:focus,textarea:focus {
 }
 
 .portfolioItem .peOver img {
-	display: block
+	display: block;
+	width: 100%;
 }
 
 .portfolioItem .peOver {

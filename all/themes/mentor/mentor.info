@@ -5,7 +5,7 @@ core = '7.x'
 stylesheets[all][] = css/mentor.min.css
 stylesheets[all][] = css/font-awesome.min.css
 
-scripts[] = 'js/mentor.min.js'
+scripts[] = js/mentor.min.js
 
 regions[header] = Header
 regions[prescript] = Prescript
