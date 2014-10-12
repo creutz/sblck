@@ -849,25 +849,7 @@
         -mox-box-shadow: 0px 2px 1px #ccc;
     }
     
-    .portfolioItem .peOver span.over{
-        background:black;
-    }
     
-    .portfolioItem a span{
-        background:url(../img/skin/project_triangle.png) no-repeat 0 0;
-    }
-    
-    .portfolioItem .title a{
-        border-left:1px solid #efefef;
-        font-weight:bold;
-        color:#666;
-        font-size:12px;
-        line-height:20px;
-    }
-    
-    .portfolioItem .title a:hover{
-        color:#2f2f2f;
-    }
     
     .item-description li i{
         opacity:0.6;
@@ -1112,24 +1094,9 @@
     
    /* thumbnail hover effect*/
     
-    a.peOver:hover img{
-        opacity:0.8;
+    a.peOver:hover {
+
     }
-    
-    a.peOver span.lightboxIcon{
-        background: url("../img/skin/view.png") no-repeat center center;
-    }
-    
-    a.peOver span.linkIcon{
-        /*background: url("../img/skin/link.png") no-repeat center center;*/
-        background: none;
-        line-height: 242px;
-        text-align: center;
-        color: white;
-        font-size: 20px;
-        opacity: 0.85;
-    }
-    
     
     
     /*video inline*/
