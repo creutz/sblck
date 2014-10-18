@@ -876,6 +876,10 @@ a:hover {
 	clear: both
 }
 
+.page-node-45 .prescript .container {
+	width: 100% !important;
+}
+
 p {
 	margin: 0 0 9px;
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -6318,6 +6322,10 @@ img {
 	max-width: 100%
 }
 
+#block-block-15 img {
+	max-width: none;
+}
+
 .peVolo .peWrap .portfolioItem {
 	margin: 0 10px 0 10px
 }
@@ -6574,6 +6582,12 @@ header .smedia span {
 .taglineWrap {
 	background: #eee;
 	border-bottom: 1px solid #ddd
+}
+
+.page-node-45 .prescript.taglineWrap {
+	background: none;
+	border: none;
+	margin-top: -120px;
 }
 
 .tagline {
@@ -6984,6 +6998,19 @@ a.influx-video {
 
 .gmap div img {
 	max-width: none
+}
+
+#block-block-15 {
+	width: 100%;
+	height: 600px;
+}
+
+#block-block-15 .gmap-window p {
+	margin-bottom: 10px;
+}
+
+#block-block-15 .gmap-window p:last-child {
+	margin-bottom: 0;
 }
 
 .result {
@@ -7494,10 +7521,10 @@ input:focus,textarea:focus {
 
 .view-display-id-portfolio_3col .portfolioItem img {
 	opacity: 1;
-	-webkit-transition: opacity 450ms;
-	-o-transition: opacity 450ms;
+	-webkit-transition: opacity 450ms, -webkit-filter 100ms;
+	-o-transition: opacity 450ms, -o-filter 100ms;
 	-ms-transition: opacity 450ms;
-	-moz-transition: opacity 450ms;
+	-moz-transition: opacity 450ms, -moz-filter 100ms;
 	transition: opacity 450ms;
 
 	-webkit-backface-visibility: hidden;
@@ -7589,6 +7616,10 @@ input:focus,textarea:focus {
 
 .csstransitions .view-display-id-portfolio_3col .portfolioItem:hover img {
 	opacity: 0.2;
+	-webkit-filter: blur(1px);
+	-moz-filter: blur(1px);
+	-o-filter: blur(1px);
+	-ms-filter: blur(1px);
 }
 
 

@@ -407,11 +407,6 @@
         border: 1px solid #aaa;
     }
     
-    .taglineWrap{
-        background:#eee;
-        border-bottom:1px solid #ddd;
-    }
-    
     .tagline .action span{
         background:url(../img/skin/or_line.png) no-repeat 5px 2px;
         line-height:36px;
@@ -829,7 +824,7 @@
     /*portfolio items*/
     
     .portfolioItem{
-        background-color:#fff;
+        background-color:#f4f4f4;
         border:0;
         box-shadow: none;
         -mox-box-shadow: none;
