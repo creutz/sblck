@@ -403,8 +403,12 @@
     }
     
     .sliderWrap .span12{
-        box-shadow: 0 1px 2px #888;
-        border: 1px solid #aaa;
+        box-shadow: none;
+        border: none;
+    }
+
+    .peVolo img {
+        width: 100%;
     }
     
     .tagline .action span{
