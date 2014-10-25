@@ -87,10 +87,7 @@
 						<h3><?php print $subtitle; ?></h3>
 					<?php endif; ?>
 					<div class="subtitle">
-					<?php if(!$icon == NULL): ?>
-						<?php print '<span class="'.$icon.'"></span>'; ?>
-					<?php endif; ?>
-					<?php print '<a href="#">'.format_date($created, 'custom', 'F jS, Y').'</a>'; ?>
+					<?php print '<div class="date">'.$date.'</div>'; ?>
 					</div>
 					<?php print $body; ?>
 					<?php if(!empty($node->field_social_media['und'])): ?>
@@ -110,7 +107,7 @@
 				<!-- Begin Portfolio Template: Image -->
 				<?php foreach($node->field_image['und'] as $item){
 					print '<div class="portfolioItem">
-					<a href="'.image_style_url('portfolio-slider', $node->field_image['und'][$active]['uri']).'"
+					<a href="'.image_style_url('big', $node->field_image['und'][$active]['uri']).'"
 					class="peOver"
 					data-target="flare"
 					data-flare-gallery="galPostThumb"
@@ -128,10 +125,7 @@
 						<h3><?php print $subtitle; ?></h3>
 					<?php endif; ?>
 					<div class="subtitle">
-					<?php if(!$icon == NULL): ?>
-						<?php print '<span class="'.$icon.'"></span>'; ?>
-					<?php endif; ?>
-					<?php print '<a href="#">'.format_date($created, 'custom', 'F jS, Y').'</a>'; ?>
+					<?php print '<div>'.$date.'</div>'; ?>
 					</div>
 					<?php print $body; ?>
 					<?php if(!empty($node->field_social_media['und'])): ?>
@@ -162,7 +156,7 @@
 									data-target="flare" 
 									data-flare-gallery="galPostThumb" 
 									data-flare-thumb="<?php print image_style_url('blog-grid-post', $node->field_image['und'][$active]['uri']); ?>" 
-									href="<?php print image_style_url('blog-grid-post', $node->field_image['und'][$active]['uri']); ?>">
+									href="<?php print image_style_url('big', $node->field_image['und'][$active]['uri']); ?>">
 									<img src="<?php print image_style_url('blog-grid-post', $node->field_image['und'][$active]['uri']); ?>"/></a>
 								</div>
 								
@@ -179,10 +173,7 @@
 					<h3><?php print $subtitle; ?></h3>
 				<?php endif; ?>
 				<div class="subtitle">
-				<?php if(!$icon == NULL): ?>
-					<?php print '<span class="'.$icon.'"></span>'; ?>
-				<?php endif; ?>
-				<?php print '<a href="#">'.format_date($created, 'custom', 'F jS, Y').'</a>'; ?>
+				<?php print '<div>'.$date.'</div>'; ?>
 				</div>
 				<?php print $body; ?>
 				<?php if(!empty($node->field_social_media['und'])): ?>
@@ -210,10 +201,7 @@
 					<h3><?php print $subtitle; ?></h3>
 				<?php endif; ?>
 				<div class="subtitle">
-				<?php if(!$icon == NULL): ?>
-					<?php print '<span class="'.$icon.'"></span>'; ?>
-				<?php endif; ?>
-				<?php print '<a href="#">'.format_date($created, 'custom', 'F jS, Y').'</a>'; ?>
+				<?php print '<div>'.$date.'</div>'; ?>
 				</div>
 				<?php print $body; ?>
 				<?php if(!empty($node->field_social_media['und'])): ?>

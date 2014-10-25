@@ -242,13 +242,15 @@
 .peFlareLightbox .peFlareLightboxControls {
 	-webkit-transform: translateZ(0px);
 	z-index: 1000;
-	left: 50%;
-	position: absolute
+	position: absolute;
+	background: #000;
+	width: 100%;
 }
 
 .peFlareLightbox .peFlareLightboxControls>div {
 	position: relative;
-	left: -50%
+	width: 150px;
+	margin: 0 auto;
 }
 
 .peFlareLightbox .peFlareLightboxControls a {
@@ -380,34 +382,15 @@
 	float: right;
 	width: 30px;
 	height: 30px;
-	opacity: .65
+	text-align: center;
+	background: none;
+	line-height: 30px;
 }
 
 .peFlareLightbox .peFlareLightboxControls a:hover {
-	opacity: 1
 }
 
-.peFlareLightbox .peFlareLightboxControls a#peFlareLightboxControlPrev {
-	background: url(../js/pe.flare/themes/default/img/prev.png) no-repeat 0
-		0
-}
 
-.peFlareLightbox .peFlareLightboxControls a#peFlareLightboxControlNext {
-	background: url(../js/pe.flare/themes/default/img/next.png) no-repeat 0
-		0
-}
-
-.peFlareLightbox .peFlareLightboxControls a#peFlareLightboxControlClose
-	{
-	background: url(../js/pe.flare/themes/default/img/close.png) no-repeat 0
-		0
-}
-
-.peFlareLightbox .peFlareLightboxControls a#peFlareLightboxControlThumbs
-	{
-	background: url(../js/pe.flare/themes/default/img/thumbs.png) no-repeat
-		0 0
-}
 
 .peFlareLightbox .peFlareLightboxSpinner span {
 	background: url(../js/pe.flare/themes/default/img/spinner.gif) no-repeat
@@ -433,14 +416,10 @@
 }
 
 .peFlareLightbox .peFlareLightboxThumbs>div>div>span {
-	border: 2px solid white;
-	box-shadow: 2px 2px 2px #000
+	
 }
 
-.peFlareLightbox .peFlareLightboxContent .peFlareLightboxRenderImage img.fit
-	{
-	border: 4px solid white;
-	box-shadow: 4px 4px 4px #000
+.peFlareLightbox .peFlareLightboxContent .peFlareLightboxRenderImage img.fit {
 }
 
 @media ( min-width :480px) and (max-width:767px) {
@@ -510,9 +489,9 @@ ol.linenums li {
 
 .slideWrap {
 	background-color: #fff;
-	border: 1px solid #cfcfcf;
-	box-shadow: 0 1px 2px #cfcfcf;
-	-mox-box-shadow: 0 2px 1px #ccc;
+	border: 0;
+	box-shadow: none;
+	-mox-box-shadow: none;
 	position: relative;		
 }
 
@@ -7648,9 +7627,9 @@ input:focus,textarea:focus {
 }
 
 .item-description .subtitle a {
-	margin-left: 25px;
-	border-left: 1px solid #efefef;
-	padding-left: 10px;
+	margin-left: 0;
+	border: none;
+	padding-left: 0;
 	color: #999;
 	font-size: 12px;
 	line-height: 20px;
@@ -8808,28 +8787,23 @@ a.peVideo video,a.peVideo iframe {
 	display: block;
 	width: 30px;
 	height: 30px;
-	opacity: .65
+	opacity: .65;
+	text-align: center;
+	background: none;
+	line-height: 30px;
 }
 
 .peVolo .peVoloPrev a:hover,.peVolo .peVoloNext a:hover {
 	opacity: 1
 }
 
-.peVolo .peVoloPrev a {
-	background: url(../img/skin/prev.png) no-repeat 0 0
-}
-
-.peVolo .peVoloNext a {
-	background: url(../img/skin/next.png) no-repeat 0 0
-}
-
 .peVolo .peVoloBullets a {
 	display: block;
-	width: 22px;
-	height: 22px;
-	opacity: .65;
+	width: 15px;
+	height: 15px;
 	float: left;
-	margin-left: 1px
+	text-align: center;
+	margin-left: 1px;
 }
 
 .peVolo .peVoloBullets a:hover,.peVolo .peVoloBullets a.selected {
@@ -8837,11 +8811,11 @@ a.peVideo video,a.peVideo iframe {
 }
 
 .peVolo .peVoloBullets a {
-	background: url(../img/skin/slide_btn.png) no-repeat 0 0
+	background: none;
 }
 
 .peVolo .peVoloBullets a.selected {
-	background-image: url(../img/skin/slide_btn_active.png)
+	background: none;
 }
 
 @media ( max-width :480px) {
